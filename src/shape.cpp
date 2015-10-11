@@ -18,9 +18,9 @@ SHAPEAPI void shape::read(FILE* file)
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
 	char* raw = (char*)malloc(size + 1);
+	memset(raw, 0, size + 1);
 	fseek(file, 0, SEEK_SET);
 	fread(raw, size, 1, file);
-	raw[size] = '\0';
 
 	int vertices = 0;
 	int texcoords = 0;
@@ -65,9 +65,9 @@ SHAPEAPI void shape::read(FILE* file)
 	}
 
 	int elements = max(vertices, texcoords);
-	std::vector<vec3> rawVertices(vertices);
-	std::vector<vec2> rawTexcoords(texcoords);
-	std::vector<vec3> rawNormals(normals);
+	std::vector<vec3> rawVertices;
+	std::vector<vec2> rawTexcoords;
+	std::vector<vec3> rawNormals;
 
 	bool orderByVertices = true;
 	if (texcoords > vertices)
