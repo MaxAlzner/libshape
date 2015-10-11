@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 #define SHAPEAPI 
 
@@ -67,63 +68,50 @@ public:
 	{
 
 		inline transformation() :
-			translation((T)0),
-			scale((T)1),
-			rotation((T)1),
+			trans((T)1),
 			space((T)1) {}
 		inline transformation(const glm::tvec3<T>& translation, const glm::tvec3<T>& scale, const glm::tvec3<T>& rotation) :
-			translation(translation),
-			scale(scale),
-			rotation(glm::rotate(glm::mat4(), rotation)),
-			space(this->rotation) {}
+			trans(glm::translate(translation)),
+			space(glm::rotate(rotation.x, glm::tvec3<T>((T)1, (T)0, (T)0)) * glm::rotate(rotation.y, glm::tvec3<T>((T)0, (T)1, (T)0)) * glm::rotate(rotation.z, glm::tvec3<T>((T)0, (T)0, (T)1)) * glm::scale(scale)) {}
 		inline transformation(const glm::tvec3<T>& translation, const glm::tvec3<T>& scale, const glm::tmat3x3<T>& space) :
-			translation(translation),
-			scale(scale),
-			rotation(space),
-			space(space) {}
-		inline transformation(const glm::tvec3<T>& translation, const glm::tvec3<T>& scale, const glm::tmat4x4<T>& space) :
-			translation(translation),
-			scale(scale),
-			rotation(space),
-			space(space) {}
+			trans(glm::translate(translation)),
+			space(glm::tmat4x4<T>(space) * glm::scale(scale)) {}
 		inline ~transformation() {}
 
-		glm::tvec3<T> translation;
-		glm::tvec3<T> scale;
-		glm::tmat4x4<T> rotation;
-		glm::tmat3x3<T> space;
+		glm::tmat4x4<T> trans;
+		glm::tmat4x4<T> space;
 
 	};
 
-	class SHAPEAPI bone
-	{
-	public:
+	//class SHAPEAPI bone
+	//{
+	//public:
 
-		inline bone() : _parent(0) {}
-		inline ~bone() {}
+	//	inline bone() : _parent(0) {}
+	//	inline ~bone() {}
 
-		const bone* parent() const;
+	//	const bone* parent() const;
 
-		void operator=(const glm::mat4& m);
+	//	void operator=(const glm::mat4& m);
 
-	protected:
+	//protected:
 
-		bone* _parent;
-		glm::mat4 _local;
+	//	bone* _parent;
+	//	glm::mat4 _local;
 
-	};
+	//};
 
 	inline shape() : _buffer(0), _size(0) {}
 	inline ~shape() {}
 
-	void release();
-
 	void read(FILE* file);
+	void read(const char* buffer);
 	void write(FILE* file);
 
 	void clear();
 
 	void normalize();
+	void transform(transformation<float>& modelview);
 
 	void putFace(const int index, const glm::ivec3& face);
 	void putVertex(const int index, const glm::vec4& v);
@@ -159,7 +147,7 @@ public:
 	component<glm::ivec4> weights;
 	component<glm::ivec4> boneIndices;
 
-	component<glm::mat4> bones;
+	//component<glm::mat4> bones;
 
 protected:
 

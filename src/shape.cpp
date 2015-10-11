@@ -3,11 +3,6 @@
 
 using namespace glm;
 
-SHAPEAPI void shape::release()
-{
-	this->clear();
-}
-
 SHAPEAPI void shape::read(FILE* file)
 {
 	if (file == 0)
@@ -15,19 +10,36 @@ SHAPEAPI void shape::read(FILE* file)
 		return;
 	}
 
+#if 0
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
-	char* raw = (char*)malloc(size + 1);
+#else
+	fseek(file, 0, SEEK_SET);
+	int size = 0;
+	while (fgetc(file) != EOF)
+	{
+		size++;
+		if (feof(file) != 0)
+		{
+			break;
+		}
+	}
+
+#endif
+	char* raw = new char[size + 1];
 	memset(raw, 0, size + 1);
 	fseek(file, 0, SEEK_SET);
-	fread(raw, size, 1, file);
-
+	fread(raw, 1, size, file);
+	this->read(raw);
+	delete[] raw;
+}
+SHAPEAPI void shape::read(const char* buffer)
+{
 	int vertices = 0;
 	int texcoords = 0;
 	int normals = 0;
 	int faces = 0;
-
-	for (const char* read = raw; read != '\0'; read = strchr(read, '\n'))
+	for (const char* read = buffer; read != '\0'; read = strchr(read, '\n'))
 	{
 		char first = *read;
 		if (first == '\n')
@@ -35,6 +47,7 @@ SHAPEAPI void shape::read(FILE* file)
 			read++;
 			first = *read;
 		}
+
 		if (first == 'v')
 		{
 			read++;
@@ -60,26 +73,14 @@ SHAPEAPI void shape::read(FILE* file)
 
 	if (faces < 1 || vertices < 1 || texcoords < 1 || normals < 1)
 	{
-		delete[] raw;
 		return;
 	}
 
 	int elements = max(vertices, texcoords);
-	std::vector<vec3> rawVertices;
-	std::vector<vec2> rawTexcoords;
-	std::vector<vec3> rawNormals;
-
-	bool orderByVertices = true;
-	if (texcoords > vertices)
-	{
-		orderByVertices = false;
-	}
-
 	this->clear();
 	this->_size = (elements * 15 * sizeof(float)) + (faces * 3 * sizeof(int));
 	this->_buffer = malloc(this->_size);
 	memset(this->_buffer, 0, this->_size);
-
 	this->vertices = component<vec4>((vec4*)this->_buffer, elements, 0);
 	this->texcoords = component<vec2>(
 		(vec2*)(((float*)this->_buffer) + (elements * 4)),
@@ -103,8 +104,12 @@ SHAPEAPI void shape::read(FILE* file)
 		elements * 15 * sizeof(float));
 	this->indices = component<int>((int*)this->faceIndices.buffer, faces * 3, this->faceIndices.offset);
 
+	std::vector<vec3> rawVertices;
+	std::vector<vec2> rawTexcoords;
+	std::vector<vec3> rawNormals;
+	bool orderByVertices = texcoords <= vertices;
 	int i = 0;
-	for (const char* read = raw; read != '\0'; read = strchr(read, '\n'))
+	for (const char* read = buffer; read != '\0'; read = strchr(read, '\n'))
 	{
 		char first = *read;
 		if (first == '\n')
@@ -161,12 +166,7 @@ SHAPEAPI void shape::read(FILE* file)
 		}
 	}
 
-	rawNormals.clear();
-	rawTexcoords.clear();
-	rawVertices.clear();
-
-	vec3* facet = new vec3[elements];
-	memset(facet, 0, sizeof(vec3) * elements);
+	std::vector<vec3> faceTangents(elements);
 	for (int i = 0; i < faces; i++)
 	{
 		// http://www.terathon.com/code/tangent.html
@@ -196,24 +196,24 @@ SHAPEAPI void shape::read(FILE* file)
 		}
 
 		vec3 tangent(((t2 * x1) - (t1 * x2)) * det, ((t2 * y1) - (t1 * y2)) * det, ((t2 * z1) - (t1 * z2)) * det);
-
-		facet[face.x] += tangent;
-		facet[face.y] += tangent;
-		facet[face.z] += tangent;
+		faceTangents[face.x] += tangent;
+		faceTangents[face.y] += tangent;
+		faceTangents[face.z] += tangent;
 	}
 
 	for (int i = 0; i < vertices; i++)
 	{
 		vec3 normal = this->normals[i];
-		vec3 tangent = glm::normalize(facet[i]);
+		vec3 tangent = glm::normalize(faceTangents[i]);
 		vec3 binormal = cross(normal, tangent);
-
 		this->putTangent(i, tangent);
 		this->putBinormal(i, binormal);
 	}
 
-	delete[] facet;
-	delete[] raw;
+	rawNormals.clear();
+	rawTexcoords.clear();
+	rawVertices.clear();
+	faceTangents.clear();
 }
 
 SHAPEAPI void shape::write(FILE* file)
@@ -273,12 +273,6 @@ SHAPEAPI void shape::write(FILE* file)
 
 SHAPEAPI void shape::clear()
 {
-	this->_size = 0;
-	if (this->_buffer != 0)
-	{
-		delete[] this->_buffer;
-	}
-
 	this->indices = component<int>();
 	this->faceIndices = component<ivec3>();
 	this->vertices = component<vec4>();
@@ -288,7 +282,12 @@ SHAPEAPI void shape::clear()
 	this->binormals = component<vec3>();
 	this->weights = component<ivec4>();
 	this->boneIndices = component<ivec4>();
-	this->bones = component<mat4>();
+	//this->bones = component<mat4>();
+	this->_size = 0;
+	if (this->_buffer != 0)
+	{
+		delete[] this->_buffer;
+	}
 }
 
 SHAPEAPI void shape::normalize()
@@ -319,6 +318,15 @@ SHAPEAPI void shape::normalize()
 		this->normals[i] = glm::normalize(this->normals[i]);
 		this->tangents[i] = glm::normalize(this->tangents[i]);
 		this->binormals[i] = glm::normalize(this->binormals[i]);
+	}
+}
+SHAPEAPI void shape::transform(transformation<float>& modelview)
+{
+	mat4 m = modelview.trans * modelview.space;
+	for (int i = 0; i < this->vertices.elements; i++)
+	{
+		vec4* v = &(this->vertices[i]);
+		*v = m * *v;
 	}
 }
 

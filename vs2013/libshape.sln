@@ -5,6 +5,11 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libshape", "..\libshape.vcxproj", "{6D8B4D40-F3F8-4810-B463-8822FFC78199}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "console", "..\console.vcxproj", "{46C737B1-BCA4-4A7F-AA56-59502AD1DBD5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6D8B4D40-F3F8-4810-B463-8822FFC78199} = {6D8B4D40-F3F8-4810-B463-8822FFC78199}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -15,6 +20,10 @@ Global
 		{6D8B4D40-F3F8-4810-B463-8822FFC78199}.Debug|Win32.Build.0 = Debug|Win32
 		{6D8B4D40-F3F8-4810-B463-8822FFC78199}.Release|Win32.ActiveCfg = Release|Win32
 		{6D8B4D40-F3F8-4810-B463-8822FFC78199}.Release|Win32.Build.0 = Release|Win32
+		{46C737B1-BCA4-4A7F-AA56-59502AD1DBD5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{46C737B1-BCA4-4A7F-AA56-59502AD1DBD5}.Debug|Win32.Build.0 = Debug|Win32
+		{46C737B1-BCA4-4A7F-AA56-59502AD1DBD5}.Release|Win32.ActiveCfg = Release|Win32
+		{46C737B1-BCA4-4A7F-AA56-59502AD1DBD5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
