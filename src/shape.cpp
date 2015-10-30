@@ -124,26 +124,26 @@ SHAPEAPI void shape::read(const char* buffer)
 			if (second == 'n')
 			{
 				vec3 normal;
-				sscanf_s(read, "vn %f %f %f", &normal.x, &normal.y, &normal.z);
+				sscanf(read, "vn %f %f %f", &normal.x, &normal.y, &normal.z);
 				rawNormals.push_back(normal);
 			}
 			else if (second == 't')
 			{
 				vec2 tex;
-				sscanf_s(read, "vt %f %f", &tex.x, &tex.y);
+				sscanf(read, "vt %f %f", &tex.x, &tex.y);
 				rawTexcoords.push_back(tex);
 			}
 			else
 			{
 				vec3 vert;
-				sscanf_s(read, "v %f %f %f", &vert.x, &vert.y, &vert.z);
+				sscanf(read, "v %f %f %f", &vert.x, &vert.y, &vert.z);
 				rawVertices.push_back(vert);
 			}
 		}
 		else if (first == 'f')
 		{
 			ivec3 a, b, c;
-			sscanf_s(read, "f %d/%d/%d %d/%d/%d %d/%d/%d", &a.x, &a.y, &a.z, &b.x, &b.y, &b.z, &c.x, &c.y, &c.z);
+			sscanf(read, "f %d/%d/%d %d/%d/%d %d/%d/%d", &a.x, &a.y, &a.z, &b.x, &b.y, &b.z, &c.x, &c.y, &c.z);
 			a -= 1;
 			b -= 1;
 			c -= 1;
@@ -280,13 +280,12 @@ SHAPEAPI void shape::clear()
 	this->normals = component<vec3>();
 	this->tangents = component<vec3>();
 	this->binormals = component<vec3>();
-	this->weights = component<ivec4>();
 	this->boneIndices = component<ivec4>();
 	//this->bones = component<mat4>();
 	this->_size = 0;
 	if (this->_buffer != 0)
 	{
-		delete[] this->_buffer;
+		free(this->_buffer);
 	}
 }
 
@@ -320,6 +319,7 @@ SHAPEAPI void shape::normalize()
 		this->binormals[i] = glm::normalize(this->binormals[i]);
 	}
 }
+#if 0
 SHAPEAPI void shape::transform(transformation<float>& modelview)
 {
 	mat4 m = modelview.trans * modelview.space;
@@ -329,6 +329,7 @@ SHAPEAPI void shape::transform(transformation<float>& modelview)
 		*v = m * *v;
 	}
 }
+#endif
 
 SHAPEAPI void shape::putFace(const int index, const ivec3& face)
 {
@@ -353,10 +354,6 @@ SHAPEAPI void shape::putTangent(const int index, const vec3& t)
 SHAPEAPI void shape::putBinormal(const int index, const vec3& b)
 {
 	this->binormals[index] = b;
-}
-SHAPEAPI void shape::putWeights(const int index, const ivec4& w)
-{
-	this->weights[index] = w;
 }
 SHAPEAPI void shape::putBoneIndices(const int index, const ivec4& bi)
 {
@@ -385,10 +382,6 @@ SHAPEAPI vec3& shape::getTangent(const int index)
 SHAPEAPI vec3& shape::getBinormal(const int index)
 {
 	return this->binormals[index];
-}
-SHAPEAPI ivec4& shape::getWeights(const int index)
-{
-	return this->weights[index];
 }
 SHAPEAPI ivec4& shape::getBoneIndices(const int index)
 {

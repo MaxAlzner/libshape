@@ -1,5 +1,7 @@
 #pragma once
 
+#define GLM_FORCE_RADIANS
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -64,6 +66,7 @@ public:
 
 	};
 
+#if 0
 	template <typename T> struct SHAPEAPI transformation
 	{
 
@@ -82,24 +85,7 @@ public:
 		glm::tmat4x4<T> space;
 
 	};
-
-	//class SHAPEAPI bone
-	//{
-	//public:
-
-	//	inline bone() : _parent(0) {}
-	//	inline ~bone() {}
-
-	//	const bone* parent() const;
-
-	//	void operator=(const glm::mat4& m);
-
-	//protected:
-
-	//	bone* _parent;
-	//	glm::mat4 _local;
-
-	//};
+#endif
 
 	inline shape() : _buffer(0), _size(0) {}
 	inline ~shape() {}
@@ -111,7 +97,9 @@ public:
 	void clear();
 
 	void normalize();
+#if 0
 	void transform(transformation<float>& modelview);
+#endif
 
 	void putFace(const int index, const glm::ivec3& face);
 	void putVertex(const int index, const glm::vec4& v);
@@ -119,7 +107,6 @@ public:
 	void putNormal(const int index, const glm::vec3& n);
 	void putTangent(const int index, const glm::vec3& t);
 	void putBinormal(const int index, const glm::vec3& b);
-	void putWeights(const int index, const glm::ivec4& w);
 	void putBoneIndices(const int index, const glm::ivec4& bi);
 	glm::ivec3& getFace(const int index);
 	glm::vec4& getVertex(const int index);
@@ -127,7 +114,6 @@ public:
 	glm::vec3& getNormal(const int index);
 	glm::vec3& getTangent(const int index);
 	glm::vec3& getBinormal(const int index);
-	glm::ivec4& getWeights(const int index);
 	glm::ivec4& getBoneIndices(const int index);
 
 	bool empty() const;
@@ -144,7 +130,6 @@ public:
 	component<glm::vec3> normals;
 	component<glm::vec3> binormals;
 	component<glm::vec3> tangents;
-	component<glm::ivec4> weights;
 	component<glm::ivec4> boneIndices;
 
 	//component<glm::mat4> bones;
