@@ -281,7 +281,7 @@ SHAPEAPI void shape::clear()
 	this->tangents = component<vec3>();
 	this->binormals = component<vec3>();
 	this->boneIndices = component<ivec4>();
-	//this->bones = component<mat4>();
+	this->bones = component<mat4>();
 	this->_size = 0;
 	if (this->_buffer != 0)
 	{
@@ -319,8 +319,7 @@ SHAPEAPI void shape::normalize()
 		this->binormals[i] = glm::normalize(this->binormals[i]);
 	}
 }
-#if 0
-SHAPEAPI void shape::transform(transformation<float>& modelview)
+SHAPEAPI void shape::transform(const transformation& modelview)
 {
 	mat4 m = modelview.trans * modelview.space;
 	for (int i = 0; i < this->vertices.elements; i++)
@@ -329,7 +328,6 @@ SHAPEAPI void shape::transform(transformation<float>& modelview)
 		*v = m * *v;
 	}
 }
-#endif
 
 SHAPEAPI void shape::putFace(const int index, const ivec3& face)
 {

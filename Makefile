@@ -8,7 +8,6 @@ bin/shape: bin/libshape.so
 bin/libshape.so: obj/shape.o obj/main.o
 	@mkdir -p bin
 	$(CC) -shared -o $@ $<
-	@ln -f bin/libshape.so /usr/local/lib
 
 .PHONY: obj/shape.o
 obj/shape.o: src/shape.cpp
@@ -19,6 +18,11 @@ obj/shape.o: src/shape.cpp
 obj/main.o: src/main.cpp
 	@mkdir -p obj
 	$(CC) -c -o $@ $< -Wall -Werror -fpic
+
+.PHONY: install
+install:
+	@ln -f include/*.* /usr/local/include
+	@ln -f bin/libshape.so /usr/local/lib
 
 .PHONY: clean
 clean:

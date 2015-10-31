@@ -66,26 +66,28 @@ public:
 
 	};
 
-#if 0
-	template <typename T> struct SHAPEAPI transformation
+	struct SHAPEAPI transformation
 	{
 
 		inline transformation() :
-			trans((T)1),
-			space((T)1) {}
-		inline transformation(const glm::tvec3<T>& translation, const glm::tvec3<T>& scale, const glm::tvec3<T>& rotation) :
+			trans(1.0f),
+			space(1.0f) {}
+		inline transformation(const glm::vec3& translation, const glm::vec3& scale, const glm::vec3& rotation) :
 			trans(glm::translate(translation)),
-			space(glm::rotate(rotation.x, glm::tvec3<T>((T)1, (T)0, (T)0)) * glm::rotate(rotation.y, glm::tvec3<T>((T)0, (T)1, (T)0)) * glm::rotate(rotation.z, glm::tvec3<T>((T)0, (T)0, (T)1)) * glm::scale(scale)) {}
-		inline transformation(const glm::tvec3<T>& translation, const glm::tvec3<T>& scale, const glm::tmat3x3<T>& space) :
+			space(
+				glm::rotate(rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) *
+				glm::rotate(rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) *
+				glm::rotate(rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+				glm::scale(scale)) {}
+		inline transformation(const glm::vec3& translation, const glm::vec3& scale, const glm::mat3& space) :
 			trans(glm::translate(translation)),
-			space(glm::tmat4x4<T>(space) * glm::scale(scale)) {}
+			space(glm::mat4(space) * glm::scale(scale)) {}
 		inline ~transformation() {}
 
-		glm::tmat4x4<T> trans;
-		glm::tmat4x4<T> space;
+		glm::mat4 trans;
+		glm::mat4 space;
 
 	};
-#endif
 
 	inline shape() : _buffer(0), _size(0) {}
 	inline ~shape() {}
@@ -97,9 +99,7 @@ public:
 	void clear();
 
 	void normalize();
-#if 0
-	void transform(transformation<float>& modelview);
-#endif
+	void transform(const transformation& modelview);
 
 	void putFace(const int index, const glm::ivec3& face);
 	void putVertex(const int index, const glm::vec4& v);
@@ -132,7 +132,7 @@ public:
 	component<glm::vec3> tangents;
 	component<glm::ivec4> boneIndices;
 
-	//component<glm::mat4> bones;
+	component<glm::mat4> bones;
 
 protected:
 
