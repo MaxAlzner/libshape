@@ -2,7 +2,7 @@
 CC = g++
 
 bin/shape: bin/libshape.so
-	$(CC) -Wall -o $@ obj/main.o -lshape
+	$(CC) -Wall -o $@ obj/main.o bin/libshape.so
 
 .PHONY: bin/libshape.so
 bin/libshape.so: obj/shape.o obj/main.o
