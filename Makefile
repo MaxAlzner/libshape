@@ -21,7 +21,7 @@ obj/main.o: src/main.cpp
 
 .PHONY: install
 install:
-	@ln -f include/*.* /usr/local/include
+	@ln -f include/*.h /usr/local/include
 	@ln -f bin/libshape.so /usr/local/lib
 
 .PHONY: clean

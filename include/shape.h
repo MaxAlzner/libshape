@@ -13,6 +13,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#include <rapidxml.hpp>
+
 #define SHAPEAPI 
 
 typedef enum shape_type
@@ -32,7 +34,7 @@ template <typename T> struct SHAPEAPI shape_component
 		offset(0),
 		stride(sizeof(T)),
 		size(0) {}
-	inline shape_component(const T* buffer, const int elements, const int offset) :
+	inline shape_component(const T* buffer, const int32_t elements, const int32_t offset) :
 		buffer(buffer),
 		elements(elements),
 		offset(offset),
@@ -50,24 +52,24 @@ template <typename T> struct SHAPEAPI shape_component
 	{
 		memcpy(this, &b, sizeof(shape_component<T>));
 	}
-	inline T* operator+(const int index)
+	inline T* operator+(const int32_t index)
 	{
 		return (T*)this->buffer + index;
 	}
-	inline T* operator-(const int index)
+	inline T* operator-(const int32_t index)
 	{
 		return (T*)this->buffer - index;
 	}
-	inline T& operator[](const int index)
+	inline T& operator[](const int32_t index)
 	{
 		return (T&)this->buffer[index % this->elements];
 	}
 	
 	T const * buffer;
-	const int elements;
-	const int offset;
-	const int stride;
-	const int size;
+	const int32_t elements;
+	const int32_t offset;
+	const int32_t stride;
+	const int32_t size;
 	
 };
 
@@ -112,7 +114,7 @@ typedef struct SHAPEAPI shapeobj
 		components(0),
 		size(0),
 		buffer(0) {}
-	inline shapeobj(const int faces, const int elements) :
+	inline shapeobj(const int32_t faces, const int32_t elements) :
 		faces(faces),
 		elements(elements),
 		components(5),
@@ -203,6 +205,11 @@ extern SHAPEAPI void shape_write(shapeobj* shape, const shape_type type, FILE* f
 
 extern SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer);
 extern SHAPEAPI void shape_write_wavefront(shapeobj* shape, FILE* file);
+
+extern SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer);
+extern SHAPEAPI void shape_write_collada(shapeobj* shape, FILE* file);
+
+extern SHAPEAPI void shape_split_tangents(shapeobj* shape);
 
 extern SHAPEAPI shape_type shape_file_extension(const char* filename);
 extern SHAPEAPI const char* shape_type_extension(const shape_type type);

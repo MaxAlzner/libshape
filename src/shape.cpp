@@ -2,6 +2,7 @@
 #include "../include/shape.h"
 
 using namespace glm;
+using namespace rapidxml;
 
 SHAPEAPI void shape_init()
 {
@@ -60,6 +61,9 @@ SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, const char* buf
 		case SHAPE_TYPE_WAVEFRONT:
 			shape_read_wavefront(shape, buffer);
 			break;
+		case SHAPE_TYPE_COLLADA:
+			shape_read_collada(shape, buffer);
+			break;
 		default:
 			break;
 		}
@@ -73,6 +77,9 @@ SHAPEAPI void shape_write(shapeobj* shape, const shape_type type, FILE* file)
 		{
 		case SHAPE_TYPE_WAVEFRONT:
 			shape_write_wavefront(shape, file);
+			break;
+		case SHAPE_TYPE_COLLADA:
+			shape_write_collada(shape, file);
 			break;
 		default:
 			break;
@@ -160,9 +167,9 @@ SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer)
 		faces * 3,
 		shape->faceIndices.offset);
 
-	std::vector<vec3> rawVertices(vertices);
-	std::vector<vec2> rawTexcoords(texcoords);
-	std::vector<vec3> rawNormals(normals);
+	std::vector<vec3> rawVertices;
+	std::vector<vec2> rawTexcoords;
+	std::vector<vec3> rawNormals;
 	bool orderByVertices = texcoords <= vertices;
 	int i = 0;
 	for (const char* read = buffer; read != '\0'; read = strchr(read, '\n'))
@@ -222,54 +229,10 @@ SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer)
 		}
 	}
 	
-	std::vector<vec3> faceTangents(elements);
-	for (int i = 0; i < faces; i++)
-	{
-		// http://www.terathon.com/code/tangent.html
-		ivec3 face = shape->faceIndices[i];
-		vec4 va = shape->vertices[face.x];
-		vec4 vb = shape->vertices[face.y];
-		vec4 vc = shape->vertices[face.z];
-		vec2 ta = shape->texcoords[face.x];
-		vec2 tb = shape->texcoords[face.y];
-		vec2 tc = shape->texcoords[face.z];
-		
-		float x1 = vb.x - va.x;
-		float x2 = vc.x - va.x;
-		float y1 = vb.y - va.y;
-		float y2 = vc.y - va.y;
-		float z1 = vb.z - va.z;
-		float z2 = vc.z - va.z;
-		float s1 = tb.x - ta.x;
-		float s2 = tc.x - ta.x;
-		float t1 = tb.y - ta.y;
-		float t2 = tc.y - ta.y;
-		
-		float det = 1.0f / ((s1 * t2) - (s2 * t1));
-		if (isinf(det))
-		{
-			det = 0.0f;
-		}
-		
-		vec3 tangent(((t2 * x1) - (t1 * x2)) * det, ((t2 * y1) - (t1 * y2)) * det, ((t2 * z1) - (t1 * z2)) * det);
-		faceTangents[face.x] += tangent;
-		faceTangents[face.y] += tangent;
-		faceTangents[face.z] += tangent;
-	}
-	
-	for (int i = 0; i < vertices; i++)
-	{
-		vec3 normal = shape->normals[i];
-		vec3 tangent = glm::normalize(faceTangents[i]);
-		vec3 binormal = cross(normal, tangent);
-		shape->tangents[i] = tangent;
-		shape->binormals[i] = binormal;
-	}
-	
 	rawNormals.clear();
 	rawTexcoords.clear();
 	rawVertices.clear();
-	faceTangents.clear();
+	shape_split_tangents(shape);
 }
 
 SHAPEAPI void shape_write_wavefront(shapeobj* shape, FILE* file)
@@ -325,6 +288,275 @@ SHAPEAPI void shape_write_wavefront(shapeobj* shape, FILE* file)
 			a.y + 1, a.y + 1, a.y + 1,
 			a.z + 1, a.z + 1, a.z + 1);
 	}
+}
+
+SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
+{
+	if (shape == 0 || buffer == 0)
+	{
+		return;
+	}
+	
+	std::vector<vec3> vertices;
+	std::vector<vec2> texcoords;
+	std::vector<vec3> normals;
+	std::vector<ivec3> points;
+	float scale = 1.0f;
+	xml_document<char> document;
+	document.parse<0>((char*)buffer);
+	xml_node<char>* root = document.first_node();
+	if (root != 0)
+	{
+		xml_node<char>* node = root->first_node();
+		while (node != 0)
+		{
+			if (strcmp(node->name(), "asset") == 0)
+			{
+				xml_node<char>* unit = node->last_node("unit");
+				if (unit != 0)
+				{
+					xml_attribute<char>* meter = unit->last_attribute("meter");
+					scale = meter != 0 ? (float)atof(meter->value()) : scale;
+				}
+			}
+			else if (strcmp(node->name(), "library_geometries") == 0)
+			{
+				xml_node<char>* geometry = node->first_node();
+				xml_node<char>* mesh = geometry != 0 ? geometry->first_node() : 0;
+				xml_node<char>* source = mesh != 0 ? mesh->first_node("source") : 0;
+				while (source != 0)
+				{
+					xml_attribute<char>* name = source->last_attribute("name");
+					xml_node<char>* values = source->last_node("float_array");
+					if (name != 0 && values != 0)
+					{
+						int stride = 0;
+						if (strcmp(name->value(), "position") == 0)
+						{
+							stride = 3;
+						}
+						else if (strcmp(name->value(), "normal") == 0)
+						{
+							stride = 3;
+						}
+						else if (strcmp(name->value(), "map1") == 0)
+						{
+							stride = 2;
+						}
+						
+						int i = 0;
+						std::vector<shapeobj::valueType> stack;
+						for (const char* read = values->value(); read != 0; read = strchr(read + 1, ' '))
+						{
+							stack.push_back((shapeobj::valueType)atof(read));
+							i++;
+							if (i >= stride)
+							{
+								if (strcmp(name->value(), "position") == 0)
+								{
+									printf("  vertex: %f, %f, %f\n", stack[0], stack[1], stack[2]);
+									vertices.push_back(vec3(stack[0], stack[1], stack[2]) * scale);
+								}
+								else if (strcmp(name->value(), "normal") == 0)
+								{
+									printf("  normal: %f, %f, %f\n", stack[0], stack[1], stack[2]);
+									normals.push_back(vec3(stack[0], stack[1], stack[2]));
+								}
+								else if (strcmp(name->value(), "map1") == 0)
+								{
+									printf("  texcoord: %f, %f\n", stack[0], stack[1]);
+									texcoords.push_back(vec2(stack[0], stack[1]));
+								}
+								
+								stack.clear();
+								i = 0;
+							}
+						}
+					}
+					
+					source = source->next_sibling("source");
+				}
+				
+				bool hasVertices = vertices.size() > 0;
+				bool hasTexcoords = texcoords.size() > 0;
+				bool hasNormals = normals.size() > 0;
+				xml_node<char>* triangles = mesh != 0 ? mesh->first_node("triangles") : 0;
+				while (triangles != 0)
+				{
+					xml_node<char>* values = triangles->last_node("p");
+					if (values != 0)
+					{
+						for (const char* read = values->value(); read != 0; )
+						{
+							ivec3 point(-1, -1, -1);
+							if (hasVertices)
+							{
+								point.x = (shapeobj::indexType)atoi(read);
+								read = strchr(read + 1, ' ');
+							}
+							
+							if (hasTexcoords)
+							{
+								point.y = (shapeobj::valueType)atof(read);
+								read = strchr(read + 1, ' ');
+							}
+							
+							if (hasNormals)
+							{
+								point.z = (shapeobj::valueType)atof(read);
+								read = strchr(read + 1, ' ');
+							}
+							
+							printf("  face: %d, %d, %d\n", point.x, point.y, point.z);
+							points.push_back(point);
+						}
+					}
+					
+					triangles = triangles->next_sibling("triangles");
+				}
+			}
+			
+			node = node->next_sibling();
+		}
+	}
+	
+	printf("    vertices: %d\n", (int)vertices.size());
+	printf("    texcoords: %d\n", (int)texcoords.size());
+	printf("    normals: %d\n", (int)normals.size());
+	printf("    points: %d\n", (int)points.size());
+	
+	if (vertices.size() < 1 || (points.size() % 3) != 0)
+	{
+		vertices.clear();
+		texcoords.clear();
+		normals.clear();
+		points.clear();
+		return;
+	}
+	
+	int elements = max(vertices.size(), texcoords.size());
+	int faces = points.size() / 3;
+	*shape = shapeobj(faces, elements);
+	shape->size = (faces * sizeof(shapeobj::indexType) * 3) + (elements * sizeof(shapeobj::valueType) * 15);
+	shape->buffer = malloc(shape->size);
+	shape->type = SHAPE_TYPE_COLLADA;
+	memset(shape->buffer, 0, shape->size);
+	shape->vertices = shape_component<shapeobj::vertexType>((shapeobj::vertexType*)shape->buffer, elements, 0);
+	shape->texcoords = shape_component<shapeobj::texcoordType>(
+		(shapeobj::texcoordType*)(((shapeobj::valueType*)shape->buffer) + (elements * 4)),
+		elements,
+		elements * 4 * sizeof(shapeobj::valueType));
+	shape->normals = shape_component<shapeobj::normalType>(
+		(shapeobj::normalType*)(((shapeobj::valueType*)shape->buffer) + (elements * 6)),
+		elements,
+		elements * 6 * sizeof(shapeobj::valueType));
+	shape->tangents = shape_component<shapeobj::tangentType>(
+		(shapeobj::tangentType*)(((shapeobj::valueType*)shape->buffer) + (elements * 9)),
+		elements,
+		elements * 9 * sizeof(shapeobj::valueType));
+	shape->binormals = shape_component<shapeobj::binormalType>(
+		(shapeobj::binormalType*)(((shapeobj::valueType*)shape->buffer) + (elements * 12)),
+		elements,
+		elements * 12 * sizeof(shapeobj::valueType));
+	shape->faceIndices = shape_component<shapeobj::faceType>(
+		(shapeobj::faceType*)(((shapeobj::valueType*)shape->buffer) + (elements * 15)),
+		faces,
+		elements * 15 * sizeof(shapeobj::valueType));
+	shape->indices = shape_component<shapeobj::indexType>(
+		(shapeobj::indexType*)shape->faceIndices.buffer,
+		faces * 3,
+		shape->faceIndices.offset);
+	bool orderByVertices = texcoords.size() <= vertices.size();
+	for (std::vector<ivec3>::iterator i = points.begin(); i != points.end(); i++)
+	{
+		ivec3 point = *i;
+		shapeobj::indexType index = orderByVertices ? (shapeobj::indexType)point.x : (shapeobj::indexType)point.y;
+		if (index >= 0)
+		{
+			shape->vertices[index] = shapeobj::vertexType(vertices[point.x], 1.0f);
+			if (point.y >= 0 && texcoords.size() > 0)
+			{
+				shape->texcoords[index] = (shapeobj::texcoordType)texcoords[point.y];
+			}
+			
+			if (point.z >= 0 && normals.size() > 0)
+			{
+				shape->normals[index] = (shapeobj::normalType)normals[point.z];
+			}
+			
+			shape->indices[(int)(i - points.begin())] = index;
+		}
+	}
+	
+	vertices.clear();
+	texcoords.clear();
+	normals.clear();
+	points.clear();
+	shape_split_tangents(shape);
+}
+SHAPEAPI void shape_write_collada(shapeobj* shape, FILE* file)
+{
+	if (shape == 0 || shape->empty() || file == 0)
+	{
+		return;
+	}
+	
+	fprintf(file, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+	fprintf(file, "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n");
+	fprintf(file, "</COLLADA>\n");
+}
+
+SHAPEAPI void shape_split_tangents(shapeobj* shape)
+{
+	if (shape == 0 || shape->empty())
+	{
+		return;
+	}
+	
+	std::vector<vec3> faceTangents(shape->elements);
+	for (int32_t i = 0; i < shape->faces; i++)
+	{
+		// http://www.terathon.com/code/tangent.html
+		ivec3 face = shape->faceIndices[i];
+		shapeobj::vertexType va = shape->vertices[face.x];
+		shapeobj::vertexType vb = shape->vertices[face.y];
+		shapeobj::vertexType vc = shape->vertices[face.z];
+		shapeobj::texcoordType ta = shape->texcoords[face.x];
+		shapeobj::texcoordType tb = shape->texcoords[face.y];
+		shapeobj::texcoordType tc = shape->texcoords[face.z];
+		shapeobj::valueType x1 = vb.x - va.x;
+		shapeobj::valueType x2 = vc.x - va.x;
+		shapeobj::valueType y1 = vb.y - va.y;
+		shapeobj::valueType y2 = vc.y - va.y;
+		shapeobj::valueType z1 = vb.z - va.z;
+		shapeobj::valueType z2 = vc.z - va.z;
+		shapeobj::valueType s1 = tb.x - ta.x;
+		shapeobj::valueType s2 = tc.x - ta.x;
+		shapeobj::valueType t1 = tb.y - ta.y;
+		shapeobj::valueType t2 = tc.y - ta.y;
+		shapeobj::valueType det = (shapeobj::valueType)1 / ((s1 * t2) - (s2 * t1));
+		if (isinf(det) || isnan(det))
+		{
+			det = (shapeobj::valueType)0;
+		}
+		
+		vec3 tangent(((t2 * x1) - (t1 * x2)) * det, ((t2 * y1) - (t1 * y2)) * det, ((t2 * z1) - (t1 * z2)) * det);
+		faceTangents[face.x] += tangent;
+		faceTangents[face.y] += tangent;
+		faceTangents[face.z] += tangent;
+	}
+	
+	for (int32_t i = 0; i < shape->elements; i++)
+	{
+		vec3 normal = shape->normals[i];
+		vec3 tangent = faceTangents[i];
+		tangent = glm::length(tangent) > 0.0f ? glm::normalize(tangent) : tangent;
+		vec3 binormal = glm::cross(normal, tangent);
+		shape->tangents[i] = tangent;
+		shape->binormals[i] = binormal;
+	}
+	
+	faceTangents.clear();
 }
 
 SHAPEAPI shape_type shape_file_extension(const char* filename)
