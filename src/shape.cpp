@@ -244,21 +244,21 @@ SHAPEAPI void shape_write_wavefront(shapeobj_t* shape, FILE* file)
 	}
 	
 	fprintf(file, "\n");
-	for (int i = 0; i < shape->vertices.elements; i++)
+	for (size_t i = 0; i < shape->vertices.elements; i++)
 	{
 		vec4 v = shape->vertices[i];
 		fprintf(file, "v %f %f %f\n", v.x, v.y, v.z);
 	}
 	
 	fprintf(file, "\n");
-	for (int i = 0; i < shape->normals.elements; i++)
+	for (size_t i = 0; i < shape->normals.elements; i++)
 	{
 		vec3 n = shape->normals[i];
 		fprintf(file, "vn %f %f %f\n", n.x, n.y, n.z);
 	}
 	
 	fprintf(file, "\n");
-	for (int i = 0; i < shape->texcoords.elements; i++)
+	for (size_t i = 0; i < shape->texcoords.elements; i++)
 	{
 		vec2 t = shape->texcoords[i];
 		fprintf(file, "vt %f %f\n", t.x, t.y);
@@ -281,7 +281,7 @@ SHAPEAPI void shape_write_wavefront(shapeobj_t* shape, FILE* file)
 #endif
 
 	fprintf(file, "\n");
-	for (int i = 0; i < shape->faceIndices.elements; i++)
+	for (size_t i = 0; i < shape->faceIndices.elements; i++)
 	{
 		ivec3 a = shape->faceIndices[i];
 		fprintf(file, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
@@ -515,7 +515,7 @@ SHAPEAPI void shape_split_tangents(shapeobj_t* shape)
 	}
 	
 	std::vector<vec3> faceTangents(shape->elements);
-	for (int32_t i = 0; i < shape->faces; i++)
+	for (size_t i = 0; i < shape->faces; i++)
 	{
 		// http://www.terathon.com/code/tangent.html
 		ivec3 face = shape->faceIndices[i];
@@ -547,7 +547,7 @@ SHAPEAPI void shape_split_tangents(shapeobj_t* shape)
 		faceTangents[face.z] += tangent;
 	}
 	
-	for (int32_t i = 0; i < shape->elements; i++)
+	for (size_t i = 0; i < shape->elements; i++)
 	{
 		vec3 normal = shape->normals[i];
 		vec3 tangent = faceTangents[i];
@@ -589,7 +589,7 @@ SHAPEAPI const char* shape_type_extension(const shape_type type)
 SHAPEAPI void shape_normalize(shapeobj_t* shape)
 {
 	float unitSize = 0.0f;
-	for (int i = 0; i < shape->vertices.elements; i++)
+	for (size_t i = 0; i < shape->vertices.elements; i++)
 	{
 		vec4 v = shape->vertices[i];
 		if (v.x > unitSize)
@@ -608,7 +608,7 @@ SHAPEAPI void shape_normalize(shapeobj_t* shape)
 		}
 	}
 	
-	for (int i = 0; i < shape->vertices.elements; i++)
+	for (size_t i = 0; i < shape->vertices.elements; i++)
 	{
 		shape->vertices[i] /= unitSize;
 		shape->normals[i] = glm::normalize(shape->normals[i]);
@@ -620,7 +620,7 @@ SHAPEAPI void shape_normalize(shapeobj_t* shape)
 SHAPEAPI void shape_transform(shapeobj_t* shape, const shape_transformation& modelview)
 {
 	mat4 m = modelview.trans * modelview.space;
-	for (int i = 0; i < shape->vertices.elements; i++)
+	for (size_t i = 0; i < shape->vertices.elements; i++)
 	{
 		vec4* v = &(shape->vertices[i]);
 		vec3* n = &(shape->normals[i]);

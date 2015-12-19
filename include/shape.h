@@ -43,7 +43,7 @@ template <typename T> struct SHAPEAPI shape_component
 	/// <param name="buffer">Buffer of elements.</param>
 	/// <param name="elements">Number of elements in the buffer.</param>
 	/// <param name="offset">Offset that from the beginning of the shape buffer to the given buffer of elements.</param>
-	inline shape_component(const T* buffer, const int32_t elements, const int32_t offset) :
+	inline shape_component(const T* buffer, const size_t elements, const size_t offset) :
 		buffer(buffer),
 		elements(elements),
 		offset(offset),
@@ -67,10 +67,9 @@ template <typename T> struct SHAPEAPI shape_component
 		memcpy(this, &b, sizeof(shape_component<T>));
 	}
 	/// <summary>
-	/// Gets a pointer to the buffer moved by the given index.
+	/// Gets a pointer to the buffer.
 	/// </summary>
-	/// <param name="index">Index to add to the buffer.</param>
-	inline T* operator+(const int32_t index)
+	inline T* operator+(const size_t index)
 	{
 		return (T*)this->buffer + index;
 	}
@@ -78,7 +77,7 @@ template <typename T> struct SHAPEAPI shape_component
 	/// Gets a pointer to the buffer moved by the given index.
 	/// </summary>
 	/// <param name="index">Index to subtract to the buffer.</param>
-	inline T* operator-(const int32_t index)
+	inline T* operator-(const size_t index)
 	{
 		return (T*)this->buffer - index;
 	}
@@ -86,7 +85,7 @@ template <typename T> struct SHAPEAPI shape_component
 	/// Gets an element from the buffer.
 	/// </summary>
 	/// <param name="index">Index to select from the buffer by.</param>
-	inline T& operator[](const int32_t index)
+	inline T& operator[](const size_t index)
 	{
 		return (T&)this->buffer[index % this->elements];
 	}
@@ -98,19 +97,19 @@ template <typename T> struct SHAPEAPI shape_component
 	/// <summary>
 	/// Number of elements in the component.
 	/// </summary>
-	const int32_t elements;
+	const size_t elements;
 	/// <summary>
 	/// The offset from the beginning of the shape's buffer to this component's buffer.
 	/// </summary>
-	const int32_t offset;
+	const size_t offset;
 	/// <summary>
 	/// The size of each element in this component.
 	/// </summary>
-	const int32_t stride;
+	const size_t stride;
 	/// <summary>
 	/// The size of all element's in this component.
 	/// </summary>
-	const int32_t size;
+	const size_t size;
 	
 };
 
@@ -175,7 +174,7 @@ struct SHAPEAPI shapeobj_t
 		buffer(0) {}
 	/// <param name="faces">Number of faces in the shape.</param>
 	/// <param name="elements">Number of elements in the shape.</param>
-	inline shapeobj_t(const int32_t faces, const int32_t elements) :
+	inline shapeobj_t(const size_t faces, const size_t elements) :
 		faces(faces),
 		elements(elements),
 		components(5),
@@ -201,19 +200,19 @@ struct SHAPEAPI shapeobj_t
 	/// <summary>
 	/// Number of triangle faces in the shape.
 	/// </summary>
-	int32_t faces;
+	size_t faces;
 	/// <summary>
 	/// Number of elements in the shape.
 	/// </summary>
-	int32_t elements;
+	size_t elements;
 	/// <summary>
 	/// Number of components in the shape.
 	/// </summary>
-	int32_t components;
+	size_t components;
 	/// <summary>
 	/// Size of the buffer in bytes.
 	/// </summary>
-	uint32_t size;
+	size_t size;
 	/// <summary>
 	/// Buffer containing the indices and the elements.
 	/// </summary>

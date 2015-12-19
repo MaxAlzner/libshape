@@ -19,32 +19,32 @@ int main(int argv, char** argc)
 		printf("Normals: %d\n", shape.normals.elements);
 		printf("Tangents: %d\n", shape.tangents.elements);
 		printf("Binormals: %d\n", shape.binormals.elements);
-		for (int32_t i = 0; i < shape.vertices.elements; i++)
+		for (size_t i = 0; i < shape.vertices.elements; i++)
 		{
 			printf("   v: %4.4f, %4.4f, %4.4f\n", shape.vertices[i].x, shape.vertices[i].y, shape.vertices[i].z);
 		}
 		
-		for (int32_t i = 0; i < shape.texcoords.elements; i++)
+		for (size_t i = 0; i < shape.texcoords.elements; i++)
 		{
 			printf("  vt: %4.4f, %4.4f\n", shape.texcoords[i].x, shape.texcoords[i].y);
 		}
 		
-		for (int32_t i = 0; i < shape.normals.elements; i++)
+		for (size_t i = 0; i < shape.normals.elements; i++)
 		{
 			printf("  vn: %4.4f, %4.4f, %4.4f\n", shape.normals[i].x, shape.normals[i].y, shape.normals[i].z);
 		}
 		
-		for (int32_t i = 0; i < shape.tangents.elements; i++)
+		for (size_t i = 0; i < shape.tangents.elements; i++)
 		{
 			printf("  tn: %4.4f, %4.4f, %4.4f\n", shape.tangents[i].x, shape.tangents[i].y, shape.tangents[i].z);
 		}
 		
-		for (int32_t i = 0; i < shape.binormals.elements; i++)
+		for (size_t i = 0; i < shape.binormals.elements; i++)
 		{
 			printf("  bn: %4.4f, %4.4f, %4.4f\n", shape.binormals[i].x, shape.binormals[i].y, shape.binormals[i].z);
 		}
 		
-		for (int32_t i = 0; i < shape.indices.elements; i++)
+		for (size_t i = 0; i < shape.indices.elements; i++)
 		{
 			printf("  f[%4d]: %d, %d, %d\n", i, shape.faceIndices[i].x, shape.faceIndices[i].y, shape.faceIndices[i].z);
 		}
