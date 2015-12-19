@@ -398,13 +398,13 @@ SHAPEAPI void shape_read_collada(shapeobj_t* shape, const char* buffer)
 							
 							if (hasTexcoords)
 							{
-								point.y = atof(read);
+								point.y = atoi(read);
 								read = strchr(read + 1, ' ');
 							}
 							
 							if (hasNormals)
 							{
-								point.z = atof(read);
+								point.z = atoi(read);
 								read = strchr(read + 1, ' ');
 							}
 							
