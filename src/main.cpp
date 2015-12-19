@@ -1,4 +1,5 @@
 
+#define _CRT_SECURE_NO_WARNINGS
 #include "../include/shape.h"
 
 int main(int argv, char** argc)
@@ -8,7 +9,7 @@ int main(int argv, char** argc)
 	for (int i = 1; i < argv; i++)
 	{
 		printf("Reading: %s\n", argc[i]);
-		shapeobj shape;
+		shapeobj_t shape;
 		FILE* file = fopen(argc[i], "r");
 		shape_read(&shape, shape_file_extension(argc[i]), file);
 		printf("Mesh type: %s\n", shape_type_extension(shape.type));

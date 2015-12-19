@@ -29,7 +29,7 @@ typedef enum shape_type
 } shape_type;
 
 /// <summary>
-/// Contains methods and properties for an instance of shape_component.
+/// Contains methods and properties for buffer of shape elements.
 /// </summary>
 template <typename T> struct SHAPEAPI shape_component
 {
@@ -115,7 +115,7 @@ template <typename T> struct SHAPEAPI shape_component
 };
 
 /// <summary>
-/// Contains methods and properties for an instance of shape_transformation.
+/// Contains matrices used for transforming a shape.
 /// </summary>
 struct SHAPEAPI shape_transformation
 {
@@ -152,9 +152,9 @@ struct SHAPEAPI shape_transformation
 };
 
 /// <summary>
-/// Contains methods and properties for an instance of shapeobj.
+/// Contains methods and properties for an instance of shape.
 /// </summary>
-typedef struct SHAPEAPI shapeobj
+struct SHAPEAPI shapeobj_t
 {
 	
 	typedef int16_t indexType;
@@ -167,7 +167,7 @@ typedef struct SHAPEAPI shapeobj
 	typedef glm::tvec3<valueType> tangentType;
 	typedef glm::tvec3<valueType> binormalType;
 	
-	inline shapeobj() :
+	inline shapeobj_t() :
 		faces(0),
 		elements(0),
 		components(0),
@@ -175,20 +175,20 @@ typedef struct SHAPEAPI shapeobj
 		buffer(0) {}
 	/// <param name="faces">Number of faces in the shape.</param>
 	/// <param name="elements">Number of elements in the shape.</param>
-	inline shapeobj(const int32_t faces, const int32_t elements) :
+	inline shapeobj_t(const int32_t faces, const int32_t elements) :
 		faces(faces),
 		elements(elements),
 		components(5),
 		size(0),
 		buffer(0) {}
 	/// <param name="other">Other shape instance.</param>
-	inline shapeobj(const shapeobj& other) :
+	inline shapeobj_t(const shapeobj_t& other) :
 		faces(other.faces),
 		elements(other.elements),
 		components(other.components),
 		size(other.size),
 		buffer(other.buffer) {}
-	inline ~shapeobj() {}
+	inline ~shapeobj_t() {}
 	
 	/// <summary>
 	/// Gets a value indicating whether or not this instance is empty.
@@ -253,7 +253,7 @@ typedef struct SHAPEAPI shapeobj
 	/// </summary>
 	shape_component<tangentType> tangents;
 	
-} shapeobj;
+};
 
 #if 0
 /// <summary>
@@ -327,7 +327,7 @@ extern SHAPEAPI void shape_release();
 /// Frees the resources used by a given shape.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
-extern SHAPEAPI void shape_free(shapeobj* shape);
+extern SHAPEAPI void shape_free(shapeobj_t* shape);
 
 /// <summary>
 /// Reads a shape object based on the given type.
@@ -335,53 +335,53 @@ extern SHAPEAPI void shape_free(shapeobj* shape);
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="type">Type of the given shape file.</param>
 /// <param name="file">Pointer to a standard file.<param>
-extern SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, FILE* file);
+extern SHAPEAPI void shape_read(shapeobj_t* shape, const shape_type type, FILE* file);
 /// <summary>
 /// Reads a shape object from a character buffer.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="type">Type of the given shape file.</param>
 /// <param name="buffer">Buffer of characters representing a shape file.</param>
-extern SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, const char* buffer);
+extern SHAPEAPI void shape_read(shapeobj_t* shape, const shape_type type, const char* buffer);
 /// <summary>
 /// Writes a shape object based on the given type.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="type">Type of the given shape file.</param>
 /// <param name="file">Pointer to a standard file.<param>
-extern SHAPEAPI void shape_write(shapeobj* shape, const shape_type type, FILE* file);
+extern SHAPEAPI void shape_write(shapeobj_t* shape, const shape_type type, FILE* file);
 
 /// <summary>
 /// Reads a wavefront shape object from a buffer of characters.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="buffer">Buffer of characters representing a shape file.</param>
-extern SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer);
+extern SHAPEAPI void shape_read_wavefront(shapeobj_t* shape, const char* buffer);
 /// <summary>
 /// Writes a wavefront shape object to a standard file.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="file">Pointer to a standard file object.<param>
-extern SHAPEAPI void shape_write_wavefront(shapeobj* shape, FILE* file);
+extern SHAPEAPI void shape_write_wavefront(shapeobj_t* shape, FILE* file);
 
 /// <summary>
 /// Reads a collada shape object from a buffer of characters.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="buffer">Buffer of characters representing a shape file.</param>
-extern SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer);
+extern SHAPEAPI void shape_read_collada(shapeobj_t* shape, const char* buffer);
 /// <summary>
 /// Writes a collada shape object to a standard file.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="file">Pointer to a standard file.<param>
-extern SHAPEAPI void shape_write_collada(shapeobj* shape, FILE* file);
+extern SHAPEAPI void shape_write_collada(shapeobj_t* shape, FILE* file);
 
 /// <summary>
 /// Calculates tangents and binormals for a shape object.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
-extern SHAPEAPI void shape_split_tangents(shapeobj* shape);
+extern SHAPEAPI void shape_split_tangents(shapeobj_t* shape);
 
 /// <summary>
 /// Gets the shape type of a given filename.
@@ -398,11 +398,11 @@ extern SHAPEAPI const char* shape_type_extension(const shape_type type);
 /// Normalizes the surface vectors (normal, tangent, binormal) of a shape object.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
-extern SHAPEAPI void shape_normalize(shapeobj* shape);
+extern SHAPEAPI void shape_normalize(shapeobj_t* shape);
 
 /// <summary>
 /// Transform a shape object based on the the given transformation.
 /// </summary>
 /// <param name="shape">Pointer to a shape.</param>
 /// <param name="modelview">Shape transform data.</param>
-extern SHAPEAPI void shape_transform(shapeobj* shape, const shape_transformation& modelview);
+extern SHAPEAPI void shape_transform(shapeobj_t* shape, const shape_transformation& modelview);

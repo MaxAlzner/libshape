@@ -1,4 +1,5 @@
 
+#define _CRT_SECURE_NO_WARNINGS
 #include "../include/shape.h"
 
 using namespace glm;
@@ -13,16 +14,16 @@ SHAPEAPI void shape_release()
 	
 }
 
-SHAPEAPI void shape_free(shapeobj* shape)
+SHAPEAPI void shape_free(shapeobj_t* shape)
 {
 	if (shape != 0 && !shape->empty())
 	{
 		free(shape->buffer);
-		*shape = shapeobj();
+		*shape = shapeobj_t();
 	}
 }
 
-SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, FILE* file)
+SHAPEAPI void shape_read(shapeobj_t* shape, const shape_type type, FILE* file)
 {
 	if (shape == 0 || file == 0)
 	{
@@ -52,7 +53,7 @@ SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, FILE* file)
 	shape_read(shape, type, raw);
 	delete[] raw;
 }
-SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, const char* buffer)
+SHAPEAPI void shape_read(shapeobj_t* shape, const shape_type type, const char* buffer)
 {
 	if (shape != 0 && type != SHAPE_TYPE_UNKNOWN && buffer != 0)
 	{
@@ -69,7 +70,7 @@ SHAPEAPI void shape_read(shapeobj* shape, const shape_type type, const char* buf
 		}
 	}
 }
-SHAPEAPI void shape_write(shapeobj* shape, const shape_type type, FILE* file)
+SHAPEAPI void shape_write(shapeobj_t* shape, const shape_type type, FILE* file)
 {
 	if (shape != 0 && !shape->empty() && type != SHAPE_TYPE_UNKNOWN && file != 0)
 	{
@@ -87,7 +88,7 @@ SHAPEAPI void shape_write(shapeobj* shape, const shape_type type, FILE* file)
 	}
 }
 
-SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer)
+SHAPEAPI void shape_read_wavefront(shapeobj_t* shape, const char* buffer)
 {
 	if (shape == 0 || buffer == 0)
 	{
@@ -136,34 +137,34 @@ SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer)
 	}
 
 	int elements = max(vertices, texcoords);
-	*shape = shapeobj(faces, elements);
-	shape->size = (faces * sizeof(shapeobj::indexType) * 3) + (elements * sizeof(shapeobj::valueType) * 15);
+	*shape = shapeobj_t(faces, elements);
+	shape->size = (faces * sizeof(shapeobj_t::indexType) * 3) + (elements * sizeof(shapeobj_t::valueType) * 15);
 	shape->buffer = malloc(shape->size);
 	shape->type = SHAPE_TYPE_WAVEFRONT;
 	memset(shape->buffer, 0, shape->size);
-	shape->vertices = shape_component<shapeobj::vertexType>((shapeobj::vertexType*)shape->buffer, elements, 0);
-	shape->texcoords = shape_component<shapeobj::texcoordType>(
-		(shapeobj::texcoordType*)(((shapeobj::valueType*)shape->buffer) + (elements * 4)),
+	shape->vertices = shape_component<shapeobj_t::vertexType>((shapeobj_t::vertexType*)shape->buffer, elements, 0);
+	shape->texcoords = shape_component<shapeobj_t::texcoordType>(
+		(shapeobj_t::texcoordType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 4)),
 		elements,
-		elements * 4 * sizeof(shapeobj::valueType));
-	shape->normals = shape_component<shapeobj::normalType>(
-		(shapeobj::normalType*)(((shapeobj::valueType*)shape->buffer) + (elements * 6)),
+		elements * 4 * sizeof(shapeobj_t::valueType));
+	shape->normals = shape_component<shapeobj_t::normalType>(
+		(shapeobj_t::normalType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 6)),
 		elements,
-		elements * 6 * sizeof(shapeobj::valueType));
-	shape->tangents = shape_component<shapeobj::tangentType>(
-		(shapeobj::tangentType*)(((shapeobj::valueType*)shape->buffer) + (elements * 9)),
+		elements * 6 * sizeof(shapeobj_t::valueType));
+	shape->tangents = shape_component<shapeobj_t::tangentType>(
+		(shapeobj_t::tangentType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 9)),
 		elements,
-		elements * 9 * sizeof(shapeobj::valueType));
-	shape->binormals = shape_component<shapeobj::binormalType>(
-		(shapeobj::binormalType*)(((shapeobj::valueType*)shape->buffer) + (elements * 12)),
+		elements * 9 * sizeof(shapeobj_t::valueType));
+	shape->binormals = shape_component<shapeobj_t::binormalType>(
+		(shapeobj_t::binormalType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 12)),
 		elements,
-		elements * 12 * sizeof(shapeobj::valueType));
-	shape->faceIndices = shape_component<shapeobj::faceType>(
-		(shapeobj::faceType*)(((shapeobj::valueType*)shape->buffer) + (elements * 15)),
+		elements * 12 * sizeof(shapeobj_t::valueType));
+	shape->faceIndices = shape_component<shapeobj_t::faceType>(
+		(shapeobj_t::faceType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 15)),
 		faces,
-		elements * 15 * sizeof(shapeobj::valueType));
-	shape->indices = shape_component<shapeobj::indexType>(
-		(shapeobj::indexType*)shape->faceIndices.buffer,
+		elements * 15 * sizeof(shapeobj_t::valueType));
+	shape->indices = shape_component<shapeobj_t::indexType>(
+		(shapeobj_t::indexType*)shape->faceIndices.buffer,
 		faces * 3,
 		shape->faceIndices.offset);
 
@@ -235,7 +236,7 @@ SHAPEAPI void shape_read_wavefront(shapeobj* shape, const char* buffer)
 	shape_split_tangents(shape);
 }
 
-SHAPEAPI void shape_write_wavefront(shapeobj* shape, FILE* file)
+SHAPEAPI void shape_write_wavefront(shapeobj_t* shape, FILE* file)
 {
 	if (shape == 0 || shape->empty() || file == 0)
 	{
@@ -290,7 +291,7 @@ SHAPEAPI void shape_write_wavefront(shapeobj* shape, FILE* file)
 	}
 }
 
-SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
+SHAPEAPI void shape_read_collada(shapeobj_t* shape, const char* buffer)
 {
 	if (shape == 0 || buffer == 0)
 	{
@@ -345,26 +346,26 @@ SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
 						}
 						
 						int i = 0;
-						std::vector<shapeobj::valueType> stack;
+						std::vector<shapeobj_t::valueType> stack;
 						for (const char* read = values->value(); read != 0; read = strchr(read + 1, ' '))
 						{
-							stack.push_back((shapeobj::valueType)atof(read));
+							stack.push_back((shapeobj_t::valueType)atof(read));
 							i++;
 							if (i >= stride)
 							{
 								if (strcmp(name->value(), "position") == 0)
 								{
-									printf("  vertex: %f, %f, %f\n", stack[0], stack[1], stack[2]);
+									//printf("  vertex: %f, %f, %f\n", stack[0], stack[1], stack[2]);
 									vertices.push_back(vec3(stack[0], stack[1], stack[2]) * scale);
 								}
 								else if (strcmp(name->value(), "normal") == 0)
 								{
-									printf("  normal: %f, %f, %f\n", stack[0], stack[1], stack[2]);
+									//printf("  normal: %f, %f, %f\n", stack[0], stack[1], stack[2]);
 									normals.push_back(vec3(stack[0], stack[1], stack[2]));
 								}
 								else if (strcmp(name->value(), "map1") == 0)
 								{
-									printf("  texcoord: %f, %f\n", stack[0], stack[1]);
+									//printf("  texcoord: %f, %f\n", stack[0], stack[1]);
 									texcoords.push_back(vec2(stack[0], stack[1]));
 								}
 								
@@ -391,23 +392,23 @@ SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
 							ivec3 point(-1, -1, -1);
 							if (hasVertices)
 							{
-								point.x = (shapeobj::indexType)atoi(read);
+								point.x = atoi(read);
 								read = strchr(read + 1, ' ');
 							}
 							
 							if (hasTexcoords)
 							{
-								point.y = (shapeobj::valueType)atof(read);
+								point.y = atof(read);
 								read = strchr(read + 1, ' ');
 							}
 							
 							if (hasNormals)
 							{
-								point.z = (shapeobj::valueType)atof(read);
+								point.z = atof(read);
 								read = strchr(read + 1, ' ');
 							}
 							
-							printf("  face: %d, %d, %d\n", point.x, point.y, point.z);
+							//printf("  face: %d, %d, %d\n", point.x, point.y, point.z);
 							points.push_back(point);
 						}
 					}
@@ -420,10 +421,10 @@ SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
 		}
 	}
 	
-	printf("    vertices: %d\n", (int)vertices.size());
-	printf("    texcoords: %d\n", (int)texcoords.size());
-	printf("    normals: %d\n", (int)normals.size());
-	printf("    points: %d\n", (int)points.size());
+	//printf("    vertices: %d\n", (int)vertices.size());
+	//printf("    texcoords: %d\n", (int)texcoords.size());
+	//printf("    normals: %d\n", (int)normals.size());
+	//printf("    points: %d\n", (int)points.size());
 	
 	if (vertices.size() < 1 || (points.size() % 3) != 0)
 	{
@@ -436,52 +437,52 @@ SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
 	
 	int elements = max(vertices.size(), texcoords.size());
 	int faces = points.size() / 3;
-	*shape = shapeobj(faces, elements);
-	shape->size = (faces * sizeof(shapeobj::indexType) * 3) + (elements * sizeof(shapeobj::valueType) * 15);
+	*shape = shapeobj_t(faces, elements);
+	shape->size = (faces * sizeof(shapeobj_t::indexType) * 3) + (elements * sizeof(shapeobj_t::valueType) * 15);
 	shape->buffer = malloc(shape->size);
 	shape->type = SHAPE_TYPE_COLLADA;
 	memset(shape->buffer, 0, shape->size);
-	shape->vertices = shape_component<shapeobj::vertexType>((shapeobj::vertexType*)shape->buffer, elements, 0);
-	shape->texcoords = shape_component<shapeobj::texcoordType>(
-		(shapeobj::texcoordType*)(((shapeobj::valueType*)shape->buffer) + (elements * 4)),
+	shape->vertices = shape_component<shapeobj_t::vertexType>((shapeobj_t::vertexType*)shape->buffer, elements, 0);
+	shape->texcoords = shape_component<shapeobj_t::texcoordType>(
+		(shapeobj_t::texcoordType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 4)),
 		elements,
-		elements * 4 * sizeof(shapeobj::valueType));
-	shape->normals = shape_component<shapeobj::normalType>(
-		(shapeobj::normalType*)(((shapeobj::valueType*)shape->buffer) + (elements * 6)),
+		elements * 4 * sizeof(shapeobj_t::valueType));
+	shape->normals = shape_component<shapeobj_t::normalType>(
+		(shapeobj_t::normalType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 6)),
 		elements,
-		elements * 6 * sizeof(shapeobj::valueType));
-	shape->tangents = shape_component<shapeobj::tangentType>(
-		(shapeobj::tangentType*)(((shapeobj::valueType*)shape->buffer) + (elements * 9)),
+		elements * 6 * sizeof(shapeobj_t::valueType));
+	shape->tangents = shape_component<shapeobj_t::tangentType>(
+		(shapeobj_t::tangentType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 9)),
 		elements,
-		elements * 9 * sizeof(shapeobj::valueType));
-	shape->binormals = shape_component<shapeobj::binormalType>(
-		(shapeobj::binormalType*)(((shapeobj::valueType*)shape->buffer) + (elements * 12)),
+		elements * 9 * sizeof(shapeobj_t::valueType));
+	shape->binormals = shape_component<shapeobj_t::binormalType>(
+		(shapeobj_t::binormalType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 12)),
 		elements,
-		elements * 12 * sizeof(shapeobj::valueType));
-	shape->faceIndices = shape_component<shapeobj::faceType>(
-		(shapeobj::faceType*)(((shapeobj::valueType*)shape->buffer) + (elements * 15)),
+		elements * 12 * sizeof(shapeobj_t::valueType));
+	shape->faceIndices = shape_component<shapeobj_t::faceType>(
+		(shapeobj_t::faceType*)(((shapeobj_t::valueType*)shape->buffer) + (elements * 15)),
 		faces,
-		elements * 15 * sizeof(shapeobj::valueType));
-	shape->indices = shape_component<shapeobj::indexType>(
-		(shapeobj::indexType*)shape->faceIndices.buffer,
+		elements * 15 * sizeof(shapeobj_t::valueType));
+	shape->indices = shape_component<shapeobj_t::indexType>(
+		(shapeobj_t::indexType*)shape->faceIndices.buffer,
 		faces * 3,
 		shape->faceIndices.offset);
 	bool orderByVertices = texcoords.size() <= vertices.size();
 	for (std::vector<ivec3>::iterator i = points.begin(); i != points.end(); i++)
 	{
 		ivec3 point = *i;
-		shapeobj::indexType index = orderByVertices ? (shapeobj::indexType)point.x : (shapeobj::indexType)point.y;
+		shapeobj_t::indexType index = orderByVertices ? (shapeobj_t::indexType)point.x : (shapeobj_t::indexType)point.y;
 		if (index >= 0)
 		{
-			shape->vertices[index] = shapeobj::vertexType(vertices[point.x], 1.0f);
+			shape->vertices[index] = shapeobj_t::vertexType(vertices[point.x], 1.0f);
 			if (point.y >= 0 && texcoords.size() > 0)
 			{
-				shape->texcoords[index] = (shapeobj::texcoordType)texcoords[point.y];
+				shape->texcoords[index] = (shapeobj_t::texcoordType)texcoords[point.y];
 			}
 			
 			if (point.z >= 0 && normals.size() > 0)
 			{
-				shape->normals[index] = (shapeobj::normalType)normals[point.z];
+				shape->normals[index] = (shapeobj_t::normalType)normals[point.z];
 			}
 			
 			shape->indices[(int)(i - points.begin())] = index;
@@ -494,7 +495,7 @@ SHAPEAPI void shape_read_collada(shapeobj* shape, const char* buffer)
 	points.clear();
 	shape_split_tangents(shape);
 }
-SHAPEAPI void shape_write_collada(shapeobj* shape, FILE* file)
+SHAPEAPI void shape_write_collada(shapeobj_t* shape, FILE* file)
 {
 	if (shape == 0 || shape->empty() || file == 0)
 	{
@@ -506,7 +507,7 @@ SHAPEAPI void shape_write_collada(shapeobj* shape, FILE* file)
 	fprintf(file, "</COLLADA>\n");
 }
 
-SHAPEAPI void shape_split_tangents(shapeobj* shape)
+SHAPEAPI void shape_split_tangents(shapeobj_t* shape)
 {
 	if (shape == 0 || shape->empty())
 	{
@@ -518,26 +519,26 @@ SHAPEAPI void shape_split_tangents(shapeobj* shape)
 	{
 		// http://www.terathon.com/code/tangent.html
 		ivec3 face = shape->faceIndices[i];
-		shapeobj::vertexType va = shape->vertices[face.x];
-		shapeobj::vertexType vb = shape->vertices[face.y];
-		shapeobj::vertexType vc = shape->vertices[face.z];
-		shapeobj::texcoordType ta = shape->texcoords[face.x];
-		shapeobj::texcoordType tb = shape->texcoords[face.y];
-		shapeobj::texcoordType tc = shape->texcoords[face.z];
-		shapeobj::valueType x1 = vb.x - va.x;
-		shapeobj::valueType x2 = vc.x - va.x;
-		shapeobj::valueType y1 = vb.y - va.y;
-		shapeobj::valueType y2 = vc.y - va.y;
-		shapeobj::valueType z1 = vb.z - va.z;
-		shapeobj::valueType z2 = vc.z - va.z;
-		shapeobj::valueType s1 = tb.x - ta.x;
-		shapeobj::valueType s2 = tc.x - ta.x;
-		shapeobj::valueType t1 = tb.y - ta.y;
-		shapeobj::valueType t2 = tc.y - ta.y;
-		shapeobj::valueType det = (shapeobj::valueType)1 / ((s1 * t2) - (s2 * t1));
+		shapeobj_t::vertexType va = shape->vertices[face.x];
+		shapeobj_t::vertexType vb = shape->vertices[face.y];
+		shapeobj_t::vertexType vc = shape->vertices[face.z];
+		shapeobj_t::texcoordType ta = shape->texcoords[face.x];
+		shapeobj_t::texcoordType tb = shape->texcoords[face.y];
+		shapeobj_t::texcoordType tc = shape->texcoords[face.z];
+		shapeobj_t::valueType x1 = vb.x - va.x;
+		shapeobj_t::valueType x2 = vc.x - va.x;
+		shapeobj_t::valueType y1 = vb.y - va.y;
+		shapeobj_t::valueType y2 = vc.y - va.y;
+		shapeobj_t::valueType z1 = vb.z - va.z;
+		shapeobj_t::valueType z2 = vc.z - va.z;
+		shapeobj_t::valueType s1 = tb.x - ta.x;
+		shapeobj_t::valueType s2 = tc.x - ta.x;
+		shapeobj_t::valueType t1 = tb.y - ta.y;
+		shapeobj_t::valueType t2 = tc.y - ta.y;
+		shapeobj_t::valueType det = (shapeobj_t::valueType)1 / ((s1 * t2) - (s2 * t1));
 		if (isinf(det) || isnan(det))
 		{
-			det = (shapeobj::valueType)0;
+			det = (shapeobj_t::valueType)0;
 		}
 		
 		vec3 tangent(((t2 * x1) - (t1 * x2)) * det, ((t2 * y1) - (t1 * y2)) * det, ((t2 * z1) - (t1 * z2)) * det);
@@ -585,7 +586,7 @@ SHAPEAPI const char* shape_type_extension(const shape_type type)
 	}
 }
 
-SHAPEAPI void shape_normalize(shapeobj* shape)
+SHAPEAPI void shape_normalize(shapeobj_t* shape)
 {
 	float unitSize = 0.0f;
 	for (int i = 0; i < shape->vertices.elements; i++)
@@ -616,7 +617,7 @@ SHAPEAPI void shape_normalize(shapeobj* shape)
 	}
 }
 
-SHAPEAPI void shape_transform(shapeobj* shape, const shape_transformation& modelview)
+SHAPEAPI void shape_transform(shapeobj_t* shape, const shape_transformation& modelview)
 {
 	mat4 m = modelview.trans * modelview.space;
 	for (int i = 0; i < shape->vertices.elements; i++)
@@ -626,8 +627,8 @@ SHAPEAPI void shape_transform(shapeobj* shape, const shape_transformation& model
 		vec3* f = &(shape->tangents[i]);
 		vec3* b = &(shape->binormals[i]);
 		*v = m * *v;
-		*n = shapeobj::normalType(modelview.space * vec4(*n, 1.0));
-		*f = shapeobj::tangentType(modelview.space * vec4(*f, 1.0));
-		*b = shapeobj::binormalType(modelview.space * vec4(*b, 1.0));
+		*n = shapeobj_t::normalType(modelview.space * vec4(*n, 1.0));
+		*f = shapeobj_t::tangentType(modelview.space * vec4(*f, 1.0));
+		*b = shapeobj_t::binormalType(modelview.space * vec4(*b, 1.0));
 	}
 }
