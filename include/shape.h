@@ -135,9 +135,19 @@ struct SHAPEAPI shape_transformation
 	/// <param name="scale">3-dimensional vector representing scale.</param>
 	/// <param name="space">3 by 3 matrix representing rotational space.</param>
 	inline shape_transformation(const glm::vec3& translation, const glm::vec3& scale, const glm::mat3& space) :
-		trans(glm::translate(translation)),
-		space(glm::mat4(space) * glm::scale(scale)) {}
+		trans(glm::scale(scale) * glm::translate(translation)),
+		space(glm::mat4(space)) {}
 	inline ~shape_transformation() {}
+	
+	/// <summary>
+	/// Transforms the given vector.
+	/// </summary>
+	/// <param name="v">4 dimensional vector to be transformed.</param>
+	/// <returns>The transformed vector.</returns>
+	inline glm::vec4 apply(const glm::vec4& v)
+	{
+		return (this->trans * (this->space * v));
+	}
 	
 	/// <summary>
 	/// 4 by 4 matrix representing a shape translation.
