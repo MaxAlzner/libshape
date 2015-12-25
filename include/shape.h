@@ -143,10 +143,20 @@ struct SHAPEAPI shape_transformation
 	/// Transforms the given vector.
 	/// </summary>
 	/// <param name="v">4 dimensional vector to be transformed.</param>
-	/// <returns>The transformed vector.</returns>
-	inline glm::vec4 apply(const glm::vec4& v)
+	/// <returns>The transformed 4 dimensional vector.</returns>
+	inline glm::vec4 apply(const glm::vec4& v) const
 	{
 		return (this->trans * (this->space * v));
+	}
+	
+	/// <summary>
+	/// Transforms the given vector.
+	/// </summary>
+	/// <param name="v">3 dimensional vector to be transformed.</param>
+	/// <returns>The transformed 3 dimensional vector.</returns>
+	inline glm::vec3 apply(const glm::vec3& v) const
+	{
+		return glm::vec3(this->trans * (this->space * glm::vec4(v, 0.0f)));
 	}
 	
 	/// <summary>
