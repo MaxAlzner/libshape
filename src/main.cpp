@@ -13,12 +13,12 @@ int main(int argv, char** argc)
 		FILE* file = fopen(argc[i], "r");
 		shape_read(&shape, shape_file_extension(argc[i]), file);
 		printf("Mesh type: %s\n", shape_type_extension(shape.type));
-		printf("Faces: %d\n", shape.faceIndices.elements);
-		printf("Vertices: %d\n", shape.vertices.elements);
-		printf("Texcoords: %d\n", shape.texcoords.elements);
-		printf("Normals: %d\n", shape.normals.elements);
-		printf("Tangents: %d\n", shape.tangents.elements);
-		printf("Binormals: %d\n", shape.binormals.elements);
+		printf("Faces: %d\n", (int)shape.faceIndices.elements);
+		printf("Vertices: %d\n", (int)shape.vertices.elements);
+		printf("Texcoords: %d\n", (int)shape.texcoords.elements);
+		printf("Normals: %d\n", (int)shape.normals.elements);
+		printf("Tangents: %d\n", (int)shape.tangents.elements);
+		printf("Binormals: %d\n", (int)shape.binormals.elements);
 		for (size_t i = 0; i < shape.vertices.elements; i++)
 		{
 			printf("   v: %4.4f, %4.4f, %4.4f\n", shape.vertices[i].x, shape.vertices[i].y, shape.vertices[i].z);
@@ -46,7 +46,7 @@ int main(int argv, char** argc)
 		
 		for (size_t i = 0; i < shape.indices.elements; i++)
 		{
-			printf("  f[%4d]: %d, %d, %d\n", i, shape.faceIndices[i].x, shape.faceIndices[i].y, shape.faceIndices[i].z);
+			printf("  f[%4d]: %d, %d, %d\n", (int)i, (int)shape.faceIndices[i].x, (int)shape.faceIndices[i].y, (int)shape.faceIndices[i].z);
 		}
 		
 		fclose(file);
